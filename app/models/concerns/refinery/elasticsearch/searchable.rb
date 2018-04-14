@@ -10,8 +10,12 @@ module Refinery
         s.gsub(/<[^>]*>/ui, ' ').gsub(/\s+/, ' ')
       end
 
+      def indexable
+	true
+      end
+
       def index_document
-        return unless respond_to?(:to_index) && document = to_index
+        return unless respond_to?(:to_index) && indexable && document = to_index
         ::Refinery::Elasticsearch.with_client do |client|
           client.index(index: ::Refinery::Elasticsearch.index_name,
                        type:  self.class.document_type,
@@ -22,7 +26,7 @@ module Refinery
       end
 
       def update_document
-        return unless respond_to?(:to_index) && document = to_index
+        return unless respond_to?(:to_index) && indexable && document = to_index
         needs_update = !(previous_changes.keys.map(&:to_sym) && document.keys.map(&:to_sym)).empty?
         ::Refinery::Elasticsearch.with_client do |client|
           client.index(index: ::Refinery::Elasticsearch.index_name,
